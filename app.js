@@ -11,10 +11,11 @@ window.addEventListener("load", (e) => {
   pokemonList.addEventListener("change", (e) => {
     showPokemonCard(e.target.value);
   });
+
+  registerServiceWorker();
 });
 
 async function getPokemonList() {
-  console.log("hello");
   const response = await fetch("https://pokeapi.co/api/v2/pokemon?limit=35");
   const json = await response.json();
 
@@ -24,10 +25,15 @@ async function getPokemonList() {
 }
 
 async function showPokemonCard(url) {
-  const response = await fetch(url);
-  const json = await response.json();
+  try {
+    const response = await fetch(url);
+    const json = await response.json();
 
-  pokemonCard.innerHTML = createCard(json);
+    pokemonCard.innerHTML = createCard(json);
+  } catch (error) {
+    console.log("Network is unavailable.");
+    pokemonCard.innerHTML = offlineCard();
+  }
 }
 
 function createCard(pokemon) {
@@ -40,6 +46,7 @@ function createCard(pokemon) {
     class="card-img-top"
     width="150"
     height="150"
+    alt="${pokemon.name}"
     />
     <div class="card-body">
     <h5 class="card-title" style="text-transform: capitalize">
@@ -50,4 +57,19 @@ function createCard(pokemon) {
     </div>
     </div>
     `;
+}
+function offlineCard() {
+  return `<div className="card-header">
+    <p>Network is unavailable</p>
+  </div>`;
+}
+
+async function registerServiceWorker() {
+  if ("serviceWorker" in navigator) {
+    try {
+      await navigator.serviceWorker.register("sw.js");
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }
